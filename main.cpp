@@ -135,7 +135,7 @@ private:
 public:
     Graph() = default;
     Graph(const int& in_size, const vector<Graph_Rib>& in_ribs): size(in_size), ribs(in_ribs){
-        adjacency = new bool*[in_size];
+        adjacency = new bool*[in_size]{0};
         distance = new int*[in_size];
         bfs_distance = new int[in_size];
         bellman_ford_distance = new int[in_size];
@@ -177,14 +177,6 @@ public:
 
         return generated;
     }
-
-    ~Graph() {
-        delete[] distance;
-        delete[] adjacency;
-        delete[] bfs_distance;
-        delete[] bellman_ford_distance;
-        delete[] rank;
-    } 
 
 /**
 * @brief Performs Breadth-First Search from a given node.
@@ -228,55 +220,60 @@ int* bfs(int start_node) {
 * @return Pointer to array with distances from start_node.
 */
 int* bfs_parallel(int start_node) {
-    for(int i = 0; i < size; i++) {
+    for (int i = 0; i < size; ++i)
         bfs_distance[i] = inf;
-    }
 
-    mutex bfs_mutex;
-    mutex add_mutex;
+    vector<atomic<bool>> visited(size);
+    for (int i = 0; i < size; ++i) visited[i] = false;
 
     using namespace std::chrono;
     auto begin_time = high_resolution_clock::now();
 
     queue<int> q;
     bfs_distance[start_node] = 0;
+    visited[start_node] = true;
     q.push(start_node);
 
-
     while (!q.empty()) {
-        int curr = q.front();
-        q.pop();
-
+        int level_size = q.size();
         vector<thread> threads;
-        vector<int> to_add;
+        vector<int> next_level;
 
-        for (int i = 0; i < size; ++i) {
-            if (adjacency[curr][i]) {
-                threads.emplace_back([&, curr, i]() {
-                    if (bfs_distance[i] == inf) {
-                        std::lock_guard<std::mutex> lock(bfs_mutex);
-                        if (bfs_distance[i] == inf) {
-                            bfs_distance[i] = bfs_distance[curr] + 1;
-                            std::lock_guard<std::mutex> lock2(add_mutex);
-                            to_add.push_back(i);
-                        }
+        mutex next_mutex;
+
+        for (int t = 0; t < level_size; ++t) {
+            int curr = q.front();
+            q.pop();
+
+            threads.emplace_back([&, curr]() {
+                vector<int> local_next;
+
+                for (int i = 0; i < size; ++i) {
+                    if (adjacency[curr][i] && !visited[i].exchange(true)) {
+                        bfs_distance[i] = bfs_distance[curr] + 1;
+                        local_next.push_back(i);
                     }
-                });
-            }
+                }
+
+                lock_guard<mutex> lock(next_mutex);
+                for (int v : local_next)
+                    next_level.push_back(v);
+            });
         }
 
         for (auto& t : threads) t.join();
 
-        for (int i : to_add) {
-            q.push(i);
-        }
+        for (int v : next_level)
+            q.push(v);
     }
 
     auto end_time = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(end_time - begin_time).count();
-    cout << "\nBFS-threaded computation time: " << duration << " microseconds" << endl;
+    cout << "\nBFS-threaded (safe) computation time: " << duration << " microseconds" << endl;
     return bfs_distance;
 }
+
+
 
 /**
 * @brief Standard Floyd-Warshall algorithm for all-pairs shortest paths.
@@ -588,7 +585,7 @@ double* PageRank_thread_pool() {
 int main()
 {
     Graph hraph;
-    hraph = Graph::GEN(10, 90);
+    hraph = Graph::GEN(10, 30);
     hraph.bfs(0);
     hraph.bfs_parallel(0);
     hraph.floyd_warshall();
@@ -598,5 +595,7 @@ int main()
     hraph.PageRank();
     hraph.PageRank_thread_pool();
     
+    while(1);
+
     return 0;
 }
