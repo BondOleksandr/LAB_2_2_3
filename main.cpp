@@ -9,9 +9,12 @@
 #include <queue>
 #include <atomic>
 #include <condition_variable>
+#include <algorithm>
+#include <cmath>
 
 using namespace std;
 
+const double eps = 0.001;
 const int inf = 1e8;
 const double PR_d = 0.85;
 
@@ -63,7 +66,7 @@ public:
                 unique_lock<mutex> lock(queue_mutex);
                 if (tasks.empty()) break;
             }
-            this_thread::sleep_for(chrono::milliseconds(1));
+            this_thread::sleep_for(chrono::nanoseconds(1));
         }
     }
 
@@ -113,7 +116,7 @@ public:
         distance = new int*[in_size];
         bfs_distance = new int[in_size];
         bellman_ford_distance = new int[in_size];
-        rank = new double[in_size];
+        rank = new double[in_size]{0.85};
 
         for(int i=0;i<in_size;i++){
             adjacency[i] = new bool[in_size];
@@ -263,7 +266,7 @@ void floyd_warshall() {
 
     auto end_time = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(end_time - begin_time).count();
-    cout << "\n Floyd–Warshall time: " << duration << " microseconds" << endl;
+    cout << "Floyd–Warshall time: " << duration << " microseconds" << endl;
     
 }
 
@@ -370,12 +373,133 @@ void bellman_ford_thread_pool(int start_node) {
 }
 
 void PageRank(){
-int* L_arr = new int[size];
+int* L_arr = new int[size]{0};
+double* new_rank = new double[size]{0};
 for (int i=0;i<size;i++){
+    rank[i] = 1.0/size;
     for(int j=0;j<size;j++){
         L_arr[i] += adjacency[i][j];
     }
 }
+
+int ribnumber = ribs.size();
+bool surp=true;
+Graph_Rib aux;
+
+sort(ribs.begin(), ribs.end(), [](const Graph_Rib& a, const Graph_Rib& b) {
+        return a.getEnd() < b.getEnd();
+    });
+
+double aux_summ;
+double current_rank;
+int current_node;
+surp = 1;
+int iter = 0;
+
+using namespace std::chrono;
+auto begin_time = high_resolution_clock::now();
+
+while(surp){
+    iter = 0;
+    surp = 0;
+    current_node = 0;
+    while(iter<ribnumber){
+        current_node = ribs[iter].getEnd();
+        aux_summ = 0;
+        while(iter<ribnumber&& current_node==ribs[iter].getEnd()){
+            aux_summ += rank[ribs[iter].getBegin()]/L_arr[ribs[iter].getBegin()];
+            iter++;
+        }
+
+        current_rank=((1-PR_d)/size)+PR_d*aux_summ;
+        if(current_rank-rank[ribs[iter-1].getEnd()]>eps || current_rank-rank[ribs[iter-1].getEnd()]< eps*(-1) )surp = true;
+        new_rank[ribs[iter-1].getEnd()] = current_rank;
+    }
+    for(int i=0;i<size;i++) rank[i]=new_rank[i];
+}
+
+auto end_time = high_resolution_clock::now();
+auto duration = duration_cast<microseconds>(end_time - begin_time).count();
+std::cout << "PageRank time: " << duration << " microseconds" << std::endl;
+
+delete[] L_arr;
+delete[] new_rank;
+}
+
+void PageRank_ThreadPool() {
+    int* L_arr = new int[size]{0};
+    double* new_rank = new double[size]{0};
+    mutex update_mutex;
+    for (int i = 0; i < size; i++) {
+        rank[i] = 1.0 / size;
+        for (int j = 0; j < size; j++) {
+            L_arr[i] += adjacency[i][j];
+        }
+    }
+
+    sort(ribs.begin(), ribs.end(), [](const Graph_Rib& a, const Graph_Rib& b) {
+        return a.getEnd() < b.getEnd();
+    });
+
+    using namespace std::chrono;
+    auto begin_time = high_resolution_clock::now();
+
+    ThreadPool Tpool(thread::hardware_concurrency());
+    bool surp = true;
+
+    while (surp) {
+        surp = false;
+        double* local_rank = new double[size]{0};
+
+        atomic<int> active_tasks = 0;
+        int iter = 0;
+
+        while (iter < ribs.size()) {
+            int target = ribs[iter].getEnd();
+            int start_iter = iter;
+
+            while (iter < ribs.size() && ribs[iter].getEnd() == target) {
+                iter++;
+            }
+
+            active_tasks++;
+
+            Tpool.enqueue([=, &L_arr, &update_mutex, &surp, &active_tasks, &local_rank]() mutable {
+                double sum = 0;
+                for (int k = start_iter; k < iter; ++k) {
+                    int from = ribs[k].getBegin();
+                    if (L_arr[from] != 0)
+                        sum += rank[from] / L_arr[from];
+                }
+
+                double current_rank = ((1.0 - PR_d) / size) + PR_d * sum;
+
+                {
+                    if (fabs(current_rank - rank[target]) > eps) {
+                        surp = true;
+                    }
+                    local_rank[target] = current_rank;
+                }
+
+                active_tasks--;
+            });
+        }
+
+        Tpool.wait_all();
+
+        for (int i = 0; i < size; i++)
+            rank[i] = local_rank[i];
+
+        delete[] local_rank;
+    }
+
+
+    delete[] L_arr;
+    delete[] new_rank;
+
+    auto end_time = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(end_time - begin_time).count();
+    std::cout << "PageRank(threaded) time: " << duration << " microseconds" << std::endl;
 }
 
     
@@ -384,12 +508,13 @@ for (int i=0;i<size;i++){
 int main()
 {
     Graph hraph;
-    hraph = Graph::GEN(200, 1);
+    hraph = Graph::GEN(10, 90);
     hraph.bfs(0);
     hraph.bfs_parallel(0);
     hraph.floyd_warshall();
     hraph.floyd_warshall_thread_pool();
-    hraph.bellman_ford(0);
-    hraph.bellman_ford_thread_pool(0);
+    hraph.PageRank();
+    hraph.PageRank_ThreadPool();
+    
     return 0;
 }
