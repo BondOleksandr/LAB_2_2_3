@@ -13,6 +13,7 @@
 using namespace std;
 
 const int inf = 1e8;
+const double PR_d = 0.85;
 
 class ThreadPool {
     vector<thread> workers;
@@ -102,6 +103,8 @@ private:
     int** distance;
     bool** adjacency;
     int* bfs_distance;
+    int* bellman_ford_distance;
+    double* rank;
 
 public:
     Graph() = default;
@@ -109,11 +112,15 @@ public:
         adjacency = new bool*[in_size];
         distance = new int*[in_size];
         bfs_distance = new int[in_size];
+        bellman_ford_distance = new int[in_size];
+        rank = new double[in_size];
 
         for(int i=0;i<in_size;i++){
             adjacency[i] = new bool[in_size];
             distance[i] = new int[in_size];
             bfs_distance[i] = inf;//inf
+            bellman_ford_distance[i]=inf;
+            rank[i]=1/in_size;
             for(int j=0;j<in_size;j++){
                 distance[i][j] = inf;//inf
             }
@@ -300,8 +307,76 @@ void floyd_warshall_thread_pool() {
     auto duration = duration_cast<milliseconds>(end_time - begin_time).count();
 
     cout << "\nThreadPool Floyd–Warshall time: " << duration << " microseconds" << endl;
+}//works well, alot of independent, paralel calculations
+
+void bellman_ford(int start_node) {
+    for (int i = 0; i < size; ++i) bellman_ford_distance[i] = inf;
+    bellman_ford_distance[start_node] = 0;
+    using namespace std::chrono;
+    auto begin_time = high_resolution_clock::now();
+
+    for (int i = 0; i < size - 1; i++) {
+        for (const auto& rib : ribs) {
+            int beg = rib.getBegin();
+            int end = rib.getEnd();
+            int w = rib.getWeight();
+
+            if ( bellman_ford_distance[beg] + w < bellman_ford_distance[end]) {
+                bellman_ford_distance[end] = bellman_ford_distance[beg] + w;
+            }
+        }
+    }
+
+    auto end_time = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(end_time - begin_time).count();
+    std::cout << "Bellman-Ford time: " << duration << " microseconds" << std::endl;
+
 }
 
+void bellman_ford_thread_pool(int start_node) {
+    for (int i = 0; i < size; ++i) bellman_ford_distance[i] = inf;
+
+    bellman_ford_distance[start_node] = 0;
+
+    using namespace std::chrono;
+    auto begin_time = high_resolution_clock::now();
+
+    ThreadPool Tpool(thread::hardware_concurrency());
+    mutex update_mutex;
+
+    for (int iter = 0; iter < size - 1; ++iter) {
+        for (const auto& rib : ribs) {
+            Tpool.enqueue([&, rib]() {
+                int beg = rib.getBegin();
+                int end = rib.getEnd();
+                int w = rib.getWeight();
+
+                int new_dist = bellman_ford_distance[beg] + w;
+
+                if (new_dist < bellman_ford_distance[end]) {
+                    lock_guard<mutex> lock(update_mutex);
+                    if (new_dist < bellman_ford_distance[end]) {
+                        bellman_ford_distance[end] = new_dist;
+                    }
+                }
+            });
+        }
+        Tpool.wait_all();
+    }
+
+    auto end_time = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(end_time - begin_time).count();
+    std::cout << "Bellman-Ford(ThreadPool) time: " << duration << " microseconds" << std::endl;
+}
+
+void PageRank(){
+int* L_arr = new int[size];
+for (int i=0;i<size;i++){
+    for(int j=0;j<size;j++){
+        L_arr[i] += adjacency[i][j];
+    }
+}
+}
 
     
 };
@@ -309,10 +384,12 @@ void floyd_warshall_thread_pool() {
 int main()
 {
     Graph hraph;
-    hraph = Graph::GEN(200, 10);
+    hraph = Graph::GEN(200, 1);
     hraph.bfs(0);
     hraph.bfs_parallel(0);
     hraph.floyd_warshall();
     hraph.floyd_warshall_thread_pool();
+    hraph.bellman_ford(0);
+    hraph.bellman_ford_thread_pool(0);
     return 0;
 }
