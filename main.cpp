@@ -18,6 +18,10 @@ const double eps = 0.001;
 const int inf = 1e8;
 const double PR_d = 0.85;
 
+/**
+ * @class ThreadPool
+ * @brief A simple thread pool for parallel task execution.
+ */
 class ThreadPool {
     vector<thread> workers;
     queue<function<void()>> tasks;
@@ -27,6 +31,10 @@ class ThreadPool {
     atomic<bool> stop;
 
 public:
+ /**
+     * @brief Initializes the thread pool with the specified number of threads.
+     * @param threads Number of threads to create.
+     */
     ThreadPool(size_t threads) : stop(false) {
         for (size_t i = 0; i < threads; ++i) {
             workers.emplace_back([this]() {
@@ -51,7 +59,10 @@ public:
             });
         }
     }
-
+    /**
+     * @brief Adds a task to the queue.
+     * @param task A function to execute in the thread pool.
+     */
     void enqueue(function<void()> task) {
         {
             unique_lock<mutex> lock(queue_mutex);
@@ -60,6 +71,9 @@ public:
         condition.notify_one();
     }
 
+    /**
+     * @brief Waits until all tasks have been processed.
+     */
     void wait_all() {
         while (true) {
             {
@@ -70,6 +84,9 @@ public:
         }
     }
 
+    /**
+     * @brief Shuts down the thread pool and joins all threads.
+     */
     ~ThreadPool() {
         stop = true;
         condition.notify_all();
@@ -78,6 +95,10 @@ public:
     }
 };
 
+/**
+ * @class Graph_Rib
+ * @brief Represents an edge (rib) in a directed graph.
+ */
 class Graph_Rib{
 private:
     int beg;
@@ -85,7 +106,6 @@ private:
     int weight = 0;
 
 public:
-    /////////geter-seter////////////
     Graph_Rib() = default;
     Graph_Rib(const int& from, const int& to, int w = 0) : beg(from), end(to), weight(w) {}
 
@@ -96,9 +116,13 @@ public:
     void setBegin(const int& from) { beg = from; }
     void setEnd(const int& to) { end = to; }
     void setWeight(int w) { weight = w; }
-    /////////geter-seter////////////
+    
 };
 
+/**
+ * @class Graph
+ * @brief Directed weighted graph with adjacency matrix, rib-list, several aux arrays for storing data.
+ */
 class Graph{
 private:
     vector<Graph_Rib> ribs;
@@ -134,6 +158,12 @@ public:
         }
     }
 
+    /**
+     * @brief Generates a random directed graph.
+     * @param node_ammount Number of nodes.
+     * @param rib_chance Probability (0–100) of edge creation between any two nodes.
+     * @return Randomly generated Graph object.
+     */
     static Graph GEN(int node_ammount, int rib_chance){
         vector<Graph_Rib> gen_ribs;
         rib_chance = rib_chance % 100;
@@ -150,9 +180,19 @@ public:
     }
 
     ~Graph() {
-    }
+        delete[] distance;
+        delete[] adjacency;
+        delete[] bfs_distance;
+        delete[] bellman_ford_distance;
+        delete[] rank;
+    } 
 
-    void bfs(int start_node) {///bfs realization - single thread
+/**
+* @brief Performs Breadth-First Search from a given node.
+* @param start_node Index of the start node.
+* @return Pointer to array with shortest distances from start_node.
+*/
+int* bfs(int start_node) {
     for(int i=0;i<size;i++){
         bfs_distance[i]=inf;
     }
@@ -179,10 +219,16 @@ public:
     auto end_time = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(end_time - begin_time).count();
     cout << "BFS computation time " << duration << " microseconds" << endl;
+    return bfs_distance;
 }
 
 
-void bfs_parallel(int start_node) {
+/**
+* @brief Parallel version of BFS using std::thread.
+* @param start_node Index of the starting node.
+* @return Pointer to array with distances from start_node.
+*/
+int* bfs_parallel(int start_node) {
     for(int i = 0; i < size; i++) {
         bfs_distance[i] = inf;
     }
@@ -209,14 +255,12 @@ void bfs_parallel(int start_node) {
             if (adjacency[curr][i]) {
                 threads.emplace_back([&, curr, i]() {
                     if (bfs_distance[i] == inf) {
-                        //what happens in each thread//
                         std::lock_guard<std::mutex> lock(bfs_mutex);
                         if (bfs_distance[i] == inf) {
                             bfs_distance[i] = bfs_distance[curr] + 1;
                             std::lock_guard<std::mutex> lock2(add_mutex);
                             to_add.push_back(i);
                         }
-                        //...........................//
                     }
                 });
             }
@@ -232,12 +276,14 @@ void bfs_parallel(int start_node) {
     auto end_time = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(end_time - begin_time).count();
     cout << "\nBFS-threaded computation time: " << duration << " microseconds" << endl;
+    return bfs_distance;
 }
-////works badly, alot of threads, they are very short-lived. Protection from data race takes up lot's of resources, annihilating all the gain for multithreadedness.////
 
-
-void floyd_warshall() {
-    //cleanup
+/**
+* @brief Standard Floyd-Warshall algorithm for all-pairs shortest paths.
+* @return Pointer to 2D array with shortest distances.
+*/
+int** floyd_warshall() {
     for (int i = 0; i < size; ++i) {
         for (int j = 0; j < size; ++j) {
             if (i == j) distance[i][j] = 0;
@@ -245,7 +291,7 @@ void floyd_warshall() {
         }
     }
 
-    for (const auto& rib : ribs) {//setting distances between nodes, that are connected by ribs
+    for (const auto& rib : ribs) {
         int u = rib.getBegin();
         int v = rib.getEnd();
         int w = rib.getWeight();
@@ -255,7 +301,7 @@ void floyd_warshall() {
     using namespace std::chrono;
     auto begin_time = high_resolution_clock::now();
 
-    for (int k = 0; k < size; ++k) {//Floyd-Warshall main
+    for (int k = 0; k < size; ++k) {
         for (int i = 0; i < size; ++i) {
             for (int j = 0; j < size; ++j) {
                 if (distance[i][k] < inf && distance[k][j] < inf)
@@ -266,11 +312,15 @@ void floyd_warshall() {
 
     auto end_time = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(end_time - begin_time).count();
-    cout << "Floyd–Warshall time: " << duration << " microseconds" << endl;
-    
+    cout << "\nFloyd–Warshall time: " << duration << " microseconds" << endl;
+    return distance;
 }
 
-void floyd_warshall_thread_pool() {
+/**
+* @brief Parallel Floyd-Warshall using ThreadPool.
+* @return Pointer to 2D array with shortest distances.
+*/
+int** floyd_warshall_thread_pool() {
     for (int i = 0; i < size; ++i) {
         for (int j = 0; j < size; ++j) {
             distance[i][j] = (i == j) ? 0 : inf;
@@ -310,9 +360,15 @@ void floyd_warshall_thread_pool() {
     auto duration = duration_cast<milliseconds>(end_time - begin_time).count();
 
     cout << "\nThreadPool Floyd–Warshall time: " << duration << " microseconds" << endl;
-}//works well, alot of independent, paralel calculations
+    return distance;
+}
 
-void bellman_ford(int start_node) {
+/**
+* @brief Standard Bellman-Ford algorithm for single-source shortest paths.
+* @param start_node Index of the source node.
+* @return Pointer to array with shortest distances.
+*/
+int* bellman_ford(int start_node) {
     for (int i = 0; i < size; ++i) bellman_ford_distance[i] = inf;
     bellman_ford_distance[start_node] = 0;
     using namespace std::chrono;
@@ -332,11 +388,16 @@ void bellman_ford(int start_node) {
 
     auto end_time = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(end_time - begin_time).count();
-    std::cout << "Bellman-Ford time: " << duration << " microseconds" << std::endl;
-
+    std::cout << "\nBellman-Ford time: " << duration << " microseconds" << std::endl;
+    return bellman_ford_distance;
 }
 
-void bellman_ford_thread_pool(int start_node) {
+/**
+* @brief Parallel Bellman-Ford using ThreadPool.
+* @param start_node Index of the source node.
+* @return Pointer to array with shortest distances.
+*/
+int* bellman_ford_thread_pool(int start_node) {
     for (int i = 0; i < size; ++i) bellman_ford_distance[i] = inf;
 
     bellman_ford_distance[start_node] = 0;
@@ -369,10 +430,16 @@ void bellman_ford_thread_pool(int start_node) {
 
     auto end_time = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(end_time - begin_time).count();
-    std::cout << "Bellman-Ford(ThreadPool) time: " << duration << " microseconds" << std::endl;
+    std::cout << "\nBellman-Ford(ThreadPool) time: " << duration << " microseconds" << std::endl;
+
+    return bellman_ford_distance;
 }
 
-void PageRank(){
+/**
+* @brief Calculates PageRank values using iterative method.
+* @return Pointer to array with rank values for each node.
+*/
+double* PageRank(){
 int* L_arr = new int[size]{0};
 double* new_rank = new double[size]{0};
 for (int i=0;i<size;i++){
@@ -403,9 +470,11 @@ while(surp){
     iter = 0;
     surp = 0;
     current_node = 0;
+
     while(iter<ribnumber){
         current_node = ribs[iter].getEnd();
         aux_summ = 0;
+
         while(iter<ribnumber&& current_node==ribs[iter].getEnd()){
             aux_summ += rank[ribs[iter].getBegin()]/L_arr[ribs[iter].getBegin()];
             iter++;
@@ -415,18 +484,25 @@ while(surp){
         if(current_rank-rank[ribs[iter-1].getEnd()]>eps || current_rank-rank[ribs[iter-1].getEnd()]< eps*(-1) )surp = true;
         new_rank[ribs[iter-1].getEnd()] = current_rank;
     }
+
     for(int i=0;i<size;i++) rank[i]=new_rank[i];
 }
 
 auto end_time = high_resolution_clock::now();
 auto duration = duration_cast<microseconds>(end_time - begin_time).count();
-std::cout << "PageRank time: " << duration << " microseconds" << std::endl;
+std::cout << "\nPageRank time: " << duration << " microseconds" << std::endl;
 
 delete[] L_arr;
 delete[] new_rank;
+
+return rank;
 }
 
-void PageRank_ThreadPool() {
+/**
+* @brief Calculates PageRank values using ThreadPool-based parallelism.
+* @return Pointer to array with rank values for each node.
+*/
+double* PageRank_thread_pool() {
     int* L_arr = new int[size]{0};
     double* new_rank = new double[size]{0};
     mutex update_mutex;
@@ -499,7 +575,9 @@ void PageRank_ThreadPool() {
 
     auto end_time = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(end_time - begin_time).count();
-    std::cout << "PageRank(threaded) time: " << duration << " microseconds" << std::endl;
+    std::cout << "\nPageRank(threaded) time: " << duration << " microseconds" << std::endl;
+
+    return rank;
 }
 
     
@@ -513,8 +591,10 @@ int main()
     hraph.bfs_parallel(0);
     hraph.floyd_warshall();
     hraph.floyd_warshall_thread_pool();
+    hraph.bellman_ford(0);
+    hraph.bellman_ford_thread_pool(0);
     hraph.PageRank();
-    hraph.PageRank_ThreadPool();
+    hraph.PageRank_thread_pool();
     
     return 0;
 }
