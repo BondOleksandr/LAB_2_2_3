@@ -1,0 +1,191 @@
+\doxysection{Graph Class Reference}
+\hypertarget{class_graph}{}\label{class_graph}\index{Graph@{Graph}}
+
+
+Directed weighted graph with adjacency matrix, rib-\/list, several aux arrays for storing data.  
+
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{class_graph_a78b0f977b0bc40565a3db3026563abc9}\label{class_graph_a78b0f977b0bc40565a3db3026563abc9} 
+{\bfseries Graph} (const int \&in\+\_\+size, const vector$<$ \mbox{\hyperlink{class_graph___rib}{Graph\+\_\+\+Rib}} $>$ \&in\+\_\+ribs)
+\item 
+int \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_graph_ac33dfe3921a186aa5d9ebb97b3c831c9}{bfs}} (int start\+\_\+node)
+\begin{DoxyCompactList}\small\item\em Performs Breadth-\/\+First Search from a given node. \end{DoxyCompactList}\item 
+int \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_graph_a233db515f2996bca3d2475bd1b5d5b46}{bfs\+\_\+parallel}} (int start\+\_\+node)
+\begin{DoxyCompactList}\small\item\em Parallel version of BFS using std\+::thread. \end{DoxyCompactList}\item 
+int \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_graph_a018db74c23245327c519109dec8d5681}{floyd\+\_\+warshall}} ()
+\begin{DoxyCompactList}\small\item\em Standard Floyd-\/\+Warshall algorithm for all-\/pairs shortest paths. \end{DoxyCompactList}\item 
+int \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_graph_aaa6b0c3c8cca3eec4f1be97dfa9a2a65}{floyd\+\_\+warshall\+\_\+thread\+\_\+pool}} ()
+\begin{DoxyCompactList}\small\item\em Parallel Floyd-\/\+Warshall using \doxylink{class_thread_pool}{Thread\+Pool}. \end{DoxyCompactList}\item 
+int \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_graph_ab41fcfa636a1844328496e7f14c3e732}{bellman\+\_\+ford}} (int start\+\_\+node)
+\begin{DoxyCompactList}\small\item\em Standard Bellman-\/\+Ford algorithm for single-\/source shortest paths. \end{DoxyCompactList}\item 
+int \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_graph_a10b47d417fdb4c6d940a6e4d7e3e47c3}{bellman\+\_\+ford\+\_\+thread\+\_\+pool}} (int start\+\_\+node)
+\begin{DoxyCompactList}\small\item\em Parallel Bellman-\/\+Ford using \doxylink{class_thread_pool}{Thread\+Pool}. \end{DoxyCompactList}\item 
+double \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_graph_a25179f6d9c3db4b29d65310d3153cf0a}{Page\+Rank}} ()
+\begin{DoxyCompactList}\small\item\em Calculates Page\+Rank values using iterative method. \end{DoxyCompactList}\item 
+double \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{class_graph_ab2de8fd75742e225778f4c1d8fc48d0a}{Page\+Rank\+\_\+thread\+\_\+pool}} ()
+\begin{DoxyCompactList}\small\item\em Calculates Page\+Rank values using Thread\+Pool-\/based parallelism. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \mbox{\hyperlink{class_graph}{Graph}} \mbox{\hyperlink{class_graph_a3dad977d1736d16ee98c680f3ae75e4c}{GEN}} (int node\+\_\+ammount, int rib\+\_\+chance)
+\begin{DoxyCompactList}\small\item\em Generates a random directed graph. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Directed weighted graph with adjacency matrix, rib-\/list, several aux arrays for storing data. 
+
+\label{doc-func-members}
+\Hypertarget{class_graph_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_graph_ab41fcfa636a1844328496e7f14c3e732}\index{Graph@{Graph}!bellman\_ford@{bellman\_ford}}
+\index{bellman\_ford@{bellman\_ford}!Graph@{Graph}}
+\doxysubsubsection{\texorpdfstring{bellman\_ford()}{bellman\_ford()}}
+{\footnotesize\ttfamily \label{class_graph_ab41fcfa636a1844328496e7f14c3e732} 
+int \texorpdfstring{$\ast$}{*} Graph\+::bellman\+\_\+ford (\begin{DoxyParamCaption}\item[{int}]{start\+\_\+node}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Standard Bellman-\/\+Ford algorithm for single-\/source shortest paths. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em start\+\_\+node} & Index of the source node. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to array with shortest distances. 
+\end{DoxyReturn}
+\Hypertarget{class_graph_a10b47d417fdb4c6d940a6e4d7e3e47c3}\index{Graph@{Graph}!bellman\_ford\_thread\_pool@{bellman\_ford\_thread\_pool}}
+\index{bellman\_ford\_thread\_pool@{bellman\_ford\_thread\_pool}!Graph@{Graph}}
+\doxysubsubsection{\texorpdfstring{bellman\_ford\_thread\_pool()}{bellman\_ford\_thread\_pool()}}
+{\footnotesize\ttfamily \label{class_graph_a10b47d417fdb4c6d940a6e4d7e3e47c3} 
+int \texorpdfstring{$\ast$}{*} Graph\+::bellman\+\_\+ford\+\_\+thread\+\_\+pool (\begin{DoxyParamCaption}\item[{int}]{start\+\_\+node}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Parallel Bellman-\/\+Ford using \doxylink{class_thread_pool}{Thread\+Pool}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em start\+\_\+node} & Index of the source node. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to array with shortest distances. 
+\end{DoxyReturn}
+\Hypertarget{class_graph_ac33dfe3921a186aa5d9ebb97b3c831c9}\index{Graph@{Graph}!bfs@{bfs}}
+\index{bfs@{bfs}!Graph@{Graph}}
+\doxysubsubsection{\texorpdfstring{bfs()}{bfs()}}
+{\footnotesize\ttfamily \label{class_graph_ac33dfe3921a186aa5d9ebb97b3c831c9} 
+int \texorpdfstring{$\ast$}{*} Graph\+::bfs (\begin{DoxyParamCaption}\item[{int}]{start\+\_\+node}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Performs Breadth-\/\+First Search from a given node. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em start\+\_\+node} & Index of the start node. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to array with shortest distances from start\+\_\+node. 
+\end{DoxyReturn}
+\Hypertarget{class_graph_a233db515f2996bca3d2475bd1b5d5b46}\index{Graph@{Graph}!bfs\_parallel@{bfs\_parallel}}
+\index{bfs\_parallel@{bfs\_parallel}!Graph@{Graph}}
+\doxysubsubsection{\texorpdfstring{bfs\_parallel()}{bfs\_parallel()}}
+{\footnotesize\ttfamily \label{class_graph_a233db515f2996bca3d2475bd1b5d5b46} 
+int \texorpdfstring{$\ast$}{*} Graph\+::bfs\+\_\+parallel (\begin{DoxyParamCaption}\item[{int}]{start\+\_\+node}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Parallel version of BFS using std\+::thread. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em start\+\_\+node} & Index of the starting node. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to array with distances from start\+\_\+node. 
+\end{DoxyReturn}
+\Hypertarget{class_graph_a018db74c23245327c519109dec8d5681}\index{Graph@{Graph}!floyd\_warshall@{floyd\_warshall}}
+\index{floyd\_warshall@{floyd\_warshall}!Graph@{Graph}}
+\doxysubsubsection{\texorpdfstring{floyd\_warshall()}{floyd\_warshall()}}
+{\footnotesize\ttfamily \label{class_graph_a018db74c23245327c519109dec8d5681} 
+int \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} Graph\+::floyd\+\_\+warshall (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Standard Floyd-\/\+Warshall algorithm for all-\/pairs shortest paths. 
+
+\begin{DoxyReturn}{Returns}
+Pointer to 2D array with shortest distances. 
+\end{DoxyReturn}
+\Hypertarget{class_graph_aaa6b0c3c8cca3eec4f1be97dfa9a2a65}\index{Graph@{Graph}!floyd\_warshall\_thread\_pool@{floyd\_warshall\_thread\_pool}}
+\index{floyd\_warshall\_thread\_pool@{floyd\_warshall\_thread\_pool}!Graph@{Graph}}
+\doxysubsubsection{\texorpdfstring{floyd\_warshall\_thread\_pool()}{floyd\_warshall\_thread\_pool()}}
+{\footnotesize\ttfamily \label{class_graph_aaa6b0c3c8cca3eec4f1be97dfa9a2a65} 
+int \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*} Graph\+::floyd\+\_\+warshall\+\_\+thread\+\_\+pool (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Parallel Floyd-\/\+Warshall using \doxylink{class_thread_pool}{Thread\+Pool}. 
+
+\begin{DoxyReturn}{Returns}
+Pointer to 2D array with shortest distances. 
+\end{DoxyReturn}
+\Hypertarget{class_graph_a3dad977d1736d16ee98c680f3ae75e4c}\index{Graph@{Graph}!GEN@{GEN}}
+\index{GEN@{GEN}!Graph@{Graph}}
+\doxysubsubsection{\texorpdfstring{GEN()}{GEN()}}
+{\footnotesize\ttfamily \label{class_graph_a3dad977d1736d16ee98c680f3ae75e4c} 
+\mbox{\hyperlink{class_graph}{Graph}} Graph\+::\+GEN (\begin{DoxyParamCaption}\item[{int}]{node\+\_\+ammount}{, }\item[{int}]{rib\+\_\+chance}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+
+
+Generates a random directed graph. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em node\+\_\+ammount} & Number of nodes. \\
+\hline
+{\em rib\+\_\+chance} & Probability (0–100) of edge creation between any two nodes. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Randomly generated \doxylink{class_graph}{Graph} object. 
+\end{DoxyReturn}
+\Hypertarget{class_graph_a25179f6d9c3db4b29d65310d3153cf0a}\index{Graph@{Graph}!PageRank@{PageRank}}
+\index{PageRank@{PageRank}!Graph@{Graph}}
+\doxysubsubsection{\texorpdfstring{PageRank()}{PageRank()}}
+{\footnotesize\ttfamily \label{class_graph_a25179f6d9c3db4b29d65310d3153cf0a} 
+double \texorpdfstring{$\ast$}{*} Graph\+::\+Page\+Rank (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Calculates Page\+Rank values using iterative method. 
+
+\begin{DoxyReturn}{Returns}
+Pointer to array with rank values for each node. 
+\end{DoxyReturn}
+\Hypertarget{class_graph_ab2de8fd75742e225778f4c1d8fc48d0a}\index{Graph@{Graph}!PageRank\_thread\_pool@{PageRank\_thread\_pool}}
+\index{PageRank\_thread\_pool@{PageRank\_thread\_pool}!Graph@{Graph}}
+\doxysubsubsection{\texorpdfstring{PageRank\_thread\_pool()}{PageRank\_thread\_pool()}}
+{\footnotesize\ttfamily \label{class_graph_ab2de8fd75742e225778f4c1d8fc48d0a} 
+double \texorpdfstring{$\ast$}{*} Graph\+::\+Page\+Rank\+\_\+thread\+\_\+pool (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Calculates Page\+Rank values using Thread\+Pool-\/based parallelism. 
+
+\begin{DoxyReturn}{Returns}
+Pointer to array with rank values for each node. 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+main.\+cpp\end{DoxyCompactItemize}

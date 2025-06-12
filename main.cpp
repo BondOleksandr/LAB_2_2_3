@@ -6,7 +6,6 @@
 #include <vector>
 #include <functional>
 #include <future>
-#include <queue>
 #include <atomic>
 #include <condition_variable>
 #include <algorithm>
@@ -583,6 +582,9 @@ double* PageRank_thread_pool() {
     
 };
 
+/**
+* @brief Main interface and state-control of the program.
+*/
 int main()
 {
     Graph hraph;

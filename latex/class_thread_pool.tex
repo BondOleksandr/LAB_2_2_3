@@ -1,0 +1,68 @@
+\doxysection{Thread\+Pool Class Reference}
+\hypertarget{class_thread_pool}{}\label{class_thread_pool}\index{ThreadPool@{ThreadPool}}
+
+
+A simple thread pool for parallel task execution.  
+
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_thread_pool_ac34e07f77d584967ddbcff7b9cc89ebb}{Thread\+Pool}} (size\+\_\+t threads)
+\begin{DoxyCompactList}\small\item\em Initializes the thread pool with the specified number of threads. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_thread_pool_a41fcb0b2fc9055a641d87baf87fd6a5d}{enqueue}} (function$<$ void()$>$ task)
+\begin{DoxyCompactList}\small\item\em Adds a task to the queue. \end{DoxyCompactList}\item 
+\Hypertarget{class_thread_pool_a82ec3e4c68369cb1f50d668419c7080d}\label{class_thread_pool_a82ec3e4c68369cb1f50d668419c7080d} 
+void {\bfseries wait\+\_\+all} ()
+\begin{DoxyCompactList}\small\item\em Waits until all tasks have been processed. \end{DoxyCompactList}\item 
+\Hypertarget{class_thread_pool_a44d3d2ab618970605e684efc216655eb}\label{class_thread_pool_a44d3d2ab618970605e684efc216655eb} 
+{\bfseries \texorpdfstring{$\sim$}{\string~}\+Thread\+Pool} ()
+\begin{DoxyCompactList}\small\item\em Shuts down the thread pool and joins all threads. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+A simple thread pool for parallel task execution. 
+
+\label{doc-constructors}
+\Hypertarget{class_thread_pool_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_thread_pool_ac34e07f77d584967ddbcff7b9cc89ebb}\index{ThreadPool@{ThreadPool}!ThreadPool@{ThreadPool}}
+\index{ThreadPool@{ThreadPool}!ThreadPool@{ThreadPool}}
+\doxysubsubsection{\texorpdfstring{ThreadPool()}{ThreadPool()}}
+{\footnotesize\ttfamily \label{class_thread_pool_ac34e07f77d584967ddbcff7b9cc89ebb} 
+Thread\+Pool\+::\+Thread\+Pool (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{threads}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Initializes the thread pool with the specified number of threads. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em threads} & Number of threads to create. \\
+\hline
+\end{DoxyParams}
+
+
+\label{doc-func-members}
+\Hypertarget{class_thread_pool_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_thread_pool_a41fcb0b2fc9055a641d87baf87fd6a5d}\index{ThreadPool@{ThreadPool}!enqueue@{enqueue}}
+\index{enqueue@{enqueue}!ThreadPool@{ThreadPool}}
+\doxysubsubsection{\texorpdfstring{enqueue()}{enqueue()}}
+{\footnotesize\ttfamily \label{class_thread_pool_a41fcb0b2fc9055a641d87baf87fd6a5d} 
+void Thread\+Pool\+::enqueue (\begin{DoxyParamCaption}\item[{function$<$ void()$>$}]{task}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Adds a task to the queue. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em task} & A function to execute in the thread pool. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+main.\+cpp\end{DoxyCompactItemize}
