@@ -585,7 +585,7 @@ double* PageRank_thread_pool() {
 int main()
 {
     Graph hraph;
-    hraph = Graph::GEN(10, 30);
+    hraph = Graph::GEN(100, 30);
     hraph.bfs(0);
     hraph.bfs_parallel(0);
     hraph.floyd_warshall();
